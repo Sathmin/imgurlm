@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImageLink Pro - Convert Images to URLs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #3b82f6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --border-color: #e5e7eb;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--primary-color);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        .hero-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            line-height: 1.1;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .converter-section {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 3rem;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 3rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.02);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.05);
+            transform: scale(1.01);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .upload-specs {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .spec-item {
+            display: inline-block;
+            background: var(--bg-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0.25rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .permission-prompt {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .permission-prompt.show {
+            display: flex;
+        }
+
+        .permission-content {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .permission-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .permission-text {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .permission-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .get-link-section {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .get-link-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+            background: var(--border-color);
+            color: var(--text-muted);
+            pointer-events: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .get-link-btn.active {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            pointer-events: auto;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .get-link-btn.active:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .get-link-btn i {
+            font-size: 1.3rem;
+        }
+
+        .preview-section {
+            display: none;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .preview-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .file-info {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .preview-container {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 6px;
+        }
+
+        .features-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background: var(--bg-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border-color);
+            padding: 2rem 0;
+            margin-top: 4rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success-color);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-xl);
+            display: none;
+            z-index: 1000;
+            font-weight: 500;
+        }
+
+        .toast.show {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .result-page {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-secondary);
+            z-index: 1000;
+        }
+
+        .result-page.active {
+            display: block;
+        }
+
+        .result-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-subtext {
+            color: var(--text-secondary);
+        }
+
+        .result-section {
+            display: none;
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .result-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .url-container {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .url-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-align: left;
+        }
+
+        .url-display {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: 'Monaco', 'Consolas', monospace;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            word-break: break-all;
+            line-height: 1.4;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .url-display:hover::after {
+            content: attr(data-full-url);
+            position: absolute;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            white-space: pre-wrap;
+            max-width: 300px;
+            z-index: 1000;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: var(--shadow-md);
+        }
+
+        .result-image-container {
+            background: var(--bg-primary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-md);
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 6px;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border-color);
+        }
+
+        .back-btn {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .back-btn:hover {
+            background: var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .converter-section {
+                padding: 1.5rem;
+            }
+            
+            .upload-zone {
+                padding: 2rem 1rem;
+            }
+            
+            .get-link-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .result-actions {
+                flex-direction: column;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+
+            .back-btn {
+                top: 1rem;
+                left: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Page -->
+    <div class="main-page">
+        <header class="header">
+            <div class="nav-container">
+                <a href="#" class="logo">
+                    <i class="fas fa-link"></i>
+                    <span>ImageLink Pro</span>
+                </a>
+                <nav class="nav-links">
+                    <a href="#" class="nav-link">Features</a>
+                    <a href="#" class="nav-link">Pricing</a>
+                    <a href="#" class="nav-link">API</a>
+                    <a href="#" class="nav-link">Support</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-container">
+            <section class="hero-section">
+                <h1 class="hero-title">Convert Images to URLs</h1>
+                <p class="hero-subtitle">Transform your images into shareable URLs instantly. Professional, secure, and completely free.</p>
+            </section>
+
+            <section class="converter-section">
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">Drop your image here or click to browse</div>
+                    <div class="upload-subtext">Your files are processed locally and never uploaded to our servers</div>
+                    <div class="upload-specs">
+                        <span class="spec-item">JPG</span>
+                        <span class="spec-item">PNG</span>
+                        <span class="spec-item">GIF</span>
+                        <span class="spec-item">WebP</span>
+                        <span class="spec-item">Max 10MB</span>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*">
+                </div>
+
+                <div class="get-link-section">
+                    <button class="get-link-btn" id="getLinkBtn">
+                        <i class="fas fa-link"></i>
+                        GET MY LINK
+                    </button>
+                </div>
+
+                <div class="preview-section" id="previewSection">
+                    <div class="preview-header">
+                        <div class="preview-title">Image Preview</div>
+                        <div class="file-info" id="fileInfo">
+                            <span id="fileName"></span>
+                            <span id="fileSize"></span>
+                            <span id="fileDimensions"></span>
+                        </div>
+                    </div>
+                    <div class="preview-container">
+                        <img id="previewImage" class="preview-image" alt="Preview">
+                    </div>
+                </div>
+            </section>
+
+            <section class="features-section">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="feature-title">100% Private</h3>
+                    <p class="feature-description">Your images are processed entirely in your browser. No uploads, no storage, complete privacy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="feature-title">Lightning Fast</h3>
+                    <p class="feature-description">Instant conversion with no waiting. Generate URLs in milliseconds, not minutes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <h3 class="feature-title">Universal URLs</h3>
+                    <p class="feature-description">Generated URLs work anywhere - emails, websites, documents, and applications.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>© 2025 ImageLink Pro. All rights reserved. | Built with privacy in mind. | sathminofc 2025</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Permission Prompt -->
+    <div class="permission-prompt" id="permissionPrompt">
+        <div class="permission-content">
+            <h2 class="permission-title">Allow Access to Photos</h2>
+            <p class="permission-text">We need your permission to access photos for uploading. Your images will be processed locally and never stored on our servers.</p>
+            <div class="permission-buttons">
+                <button class="btn btn-primary" id="allowPermission">Allow</button>
+                <button class="btn btn-secondary" id="denyPermission">Deny</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Page -->
+    <div class="result-page" id="resultPage">
+        <a href="#" class="back-btn" id="backBtn">
+            <i class="fas fa-arrow-left"></i>
+            Back
+        </a>
+        
+        <div class="result-container">
+            <div class="loading-section" id="loadingSection">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Generating your link...</div>
+                <div class="loading-subtext">Please wait while we process your image</div>
+            </div>
+
+            <div class="result-section" id="resultSection">
+                <h2 class="result-title">Your Link is Ready!</h2>
+                <p class="result-subtitle">Your image has been converted to a shareable URL</p>
+                
+                <div class="result-image-container">
+                    <img id="resultImage" class="result-image" alt="Result">
+                </div>
+                
+                <div class="url-container">
+                    <div class="url-label">Generated URL:</div>
+                    <div class="url-display" id="finalUrl" data-full-url=""></div>
+                    
+                    <div class="result-actions">
+                        <button class="btn btn-primary" id="copyFinalBtn">
+                            <i class="fas fa-copy"></i>
+                            Copy Link
+                        </button>
+                        <button class="btn btn-secondary" id="downloadFinalBtn">
+                            <i class="fas fa-download"></i>
+                            Download
+                        </button>
+                        <button class="btn btn-secondary" id="shareBtn">
+                            <i class="fas fa-share"></i>
+                            Share
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span>URL copied to clipboard!</span>
+    </div>
+
+    <script>
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewSection = document.getElementById('previewSection');
+        const previewImage = document.getElementById('previewImage');
+        const getLinkBtn = document.getElementById('getLinkBtn');
+        const resultPage = document.getElementById('resultPage');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultSection = document.getElementById('resultSection');
+        const finalUrl = document.getElementById('finalUrl');
+        const copyFinalBtn = document.getElementById('copyFinalBtn');
+        const downloadFinalBtn = document.getElementById('downloadFinalBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const backBtn = document.getElementById('backBtn');
+        const toast = document.getElementById('toast');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileDimensions = document.getElementById('fileDimensions');
+        const resultImage = document.getElementById('resultImage');
+        const permissionPrompt = document.getElementById('permissionPrompt');
+        const allowPermission = document.getElementById('allowPermission');
+        const denyPermission = document.getElementById('denyPermission');
+
+        let currentImageUrl = '';
+        let currentFileName = '';
+        let hasPermission = false;
+
+        // Event listeners
+        uploadZone.addEventListener('click', showPermissionPrompt);
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadZone.addEventListener('dragover', handleDragOver);
+        uploadZone.addEventListener('dragleave', handleDragLeave);
+        uploadZone.addEventListener('drop', handleDrop);
+        getLinkBtn.addEventListener('click', handleGetLink);
+        copyFinalBtn.addEventListener('click', copyFinalUrl);
+        downloadFinalBtn.addEventListener('click', downloadFinalUrl);
+        shareBtn.addEventListener('click', shareUrl);
+        backBtn.addEventListener('click', goBack);
+        allowPermission.addEventListener('click', grantPermission);
+        denyPermission.addEventListener('click', denyPermissionHandler);
+
+        function showPermissionPrompt(e) {
+            if (!hasPermission) {
+                e.preventDefault();
+                permissionPrompt.classList.add('show');
+            } else {
+                fileInput.click();
+            }
+        }
+
+        function grantPermission() {
+            hasPermission = true;
+            permissionPrompt.classList.remove('show');
+            fileInput.click();
+        }
+
+        function denyPermissionHandler() {
+            permissionPrompt.classList.remove('show');
+            showToast('Photo access denied', 'error');
+        }
+
+        function shortenUrlForDisplay(url) {
+            if (url.length > 100) {
+                return {
+                    display: url.substring(0, 50) + '...' + url.substring(url.length - 50),
+                    full: url
+                };
+            }
+            return { display: url, full: url };
+        }
+
+        function handleFileSelect(e) {
+            if (!hasPermission) {
+                showToast('Please grant permission to access photos', 'error');
+                return;
+            }
+            const file = e.target.files[0];
+            if (file) processFile(file);
+        }
+
+        function handleDragOver(e) {
+            if (!hasPermission) {
+                showToast('Please grant permission to access photos', 'error');
+                return;
+            }
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            if (!hasPermission) {
+                showToast('Please grant permission to access photos', 'error');
+                return;
+            }
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) processFile(files[0]);
+        }
+
+        function processFile(file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select a valid image file', 'error');
+                return;
+            }
+
+            // Validate file size (10MB limit)
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('File size must be less than 10MB', 'error');
+                return;
+            }
+
+            // Update file info
+            currentFileName = file.name;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImageUrl = e.target.result;
+                
+                // Create image to get dimensions
+                const img = new Image();
+                img.onload = function() {
+                    fileDimensions.textContent = `${img.width} × ${img.height}px`;
+                };
+                img.src = currentImageUrl;
+                
+                // Update preview
+                previewImage.src = currentImageUrl;
+                previewSection.style.display = 'block';
+                
+                // Activate GET MY LINK button
+                getLinkBtn.classList.add('active');
+                
+                // Scroll to button
+                setTimeout(() => {
+                    getLinkBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            };
+            
+            reader.readAsDataURL(file);
+        }
+
+        function handleGetLink() {
+            if (!currentImageUrl) {
+                showToast('Please select an image first', 'error');
+                return;
+            }
+
+            // Show result page
+            resultPage.classList.add('active');
+            loadingSection.style.display = 'block';
+            resultSection.style.display = 'none';
+            resultSection.classList.remove('show');
+
+            // Simulate loading time
+            setTimeout(() => {
+                loadingSection.style.display = 'none';
+                resultSection.style.display = 'block';
+                resultSection.classList.add('show');
+                const urlObj = shortenUrlForDisplay(currentImageUrl);
+                finalUrl.textContent = urlObj.display;
+                finalUrl.dataset.fullUrl = urlObj.full; // Store full URL in a data attribute
+                resultImage.src = currentImageUrl;
+            }, 2500);
+        }
+
+        function copyFinalUrl() {
+            const fullUrl = finalUrl.dataset.fullUrl || currentImageUrl;
+            
+            // Check if the page is in a secure context
+            if (!window.isSecureContext) {
+                showToast('Clipboard access requires a secure connection (HTTPS). Please copy the URL manually.', 'error');
+                promptManualCopy(fullUrl);
+                return;
+            }
+
+            // Try modern Clipboard API
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullUrl)
+                    .then(() => {
+                        showToast('URL copied to clipboard!', 'success');
+                    })
+                    .catch((err) => {
+                        console.error('Clipboard API failed:', err);
+                        // Fallback to execCommand
+                        tryFallbackCopy(fullUrl);
+                    });
+            } else {
+                // If Clipboard API is not available, try fallback
+                tryFallbackCopy(fullUrl);
+            }
+        }
+
+        function tryFallbackCopy(url) {
+            try {
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                textArea.style.position = 'fixed'; // Prevent scrolling issues
+                textArea.style.opacity = '0'; // Hide the textarea
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const success = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                if (success) {
+                    showToast('URL copied to clipboard!', 'success');
+                } else {
+                    showToast('Unable to copy to clipboard. Please copy the URL manually.', 'error');
+                    promptManualCopy(url);
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                showToast('Unable to copy to clipboard. Please copy the URL manually.', 'error');
+                promptManualCopy(url);
+            }
+        }
+
+        function promptManualCopy(url) {
+            // Display the URL in a prompt for manual copying
+            window.prompt('Copy this URL:', url);
+        }
+
+        function downloadFinalUrl() {
+            const url = finalUrl.dataset.fullUrl || currentImageUrl;
+            const filename = currentFileName.replace(/\.[^/.]+$/, "") + '_url.txt';
+            
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(url));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+            
+            showToast('URL file downloaded!', 'success');
+        }
+
+        function shareUrl() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'ImageLink Pro - Generated URL',
+                    text: 'Check out this image URL generated with ImageLink Pro',
+                    url: finalUrl.dataset.fullUrl || currentImageUrl
+                });
+            } else {
+                copyFinalUrl();
+            }
+        }
+
+        function goBack() {
+            resultPage.classList.remove('active');
+            resultSection.classList.remove('show');
+            resultSection.style.display = 'none';
+            loadingSection.style.display = 'block';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showToast(message, type = 'success') {
+            const toastEl = document.getElementById('toast');
+            toastEl.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                <span>${message}</span>
+            `;
+            toastEl.style.background = type === 'success' ? 'var(--success-color)' : 'var(--error-color)';
+            toastEl.classList.add('show');
+            
+            setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
